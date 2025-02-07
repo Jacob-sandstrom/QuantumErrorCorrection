@@ -4,7 +4,7 @@ import torch.nn
 import stim
 import os
 
-from src.utils import parse_yaml
+from utils import parse_yaml
 from gnn_models import GNN_7
 from graph_representation import sample_syndromes, get_batch_of_node_features
 from graph_representation import get_batch_of_edges
