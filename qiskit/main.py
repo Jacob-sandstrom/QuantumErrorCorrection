@@ -23,3 +23,6 @@ circuit.measure(qreg_q[2], creg_c[2])
 
 
 circuit.draw(output="mpl", style='iqp')
+
+# %%
+

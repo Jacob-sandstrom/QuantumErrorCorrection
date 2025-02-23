@@ -83,6 +83,8 @@ class repetition_code_MWPM:
 
     #Add space-like edges:
         for i in range(0,(self.time_steps+1)*(self.code_distance-1),self.code_distance-1):
+            print(i)
+            print(weight_matrix)
             matching.add_boundary_edge(i, weight=weight_matrix[i][i+1], fault_ids={0} ,merge_strategy='replace')
             for j in range(self.code_distance-2):
                 matching.add_edge(i+j,i+j+1, weight=weight_matrix[i+j][i+j+1], fault_ids={j+1}, merge_strategy='replace')
