@@ -137,6 +137,7 @@ class Decoder:
         if error_rate.__class__ == float:
             circuit = stim.Circuit.generated(
                             "surface_code:rotated_memory_z",
+                            # "repetition_code:memory",
                             rounds = self.d_t,
                             distance = self.code_size,
                             after_clifford_depolarization = error_rate,
@@ -151,6 +152,7 @@ class Decoder:
             for p in error_rate:
                 circuit = stim.Circuit.generated(
                             "surface_code:rotated_memory_z",
+                            # "repetition_code:memory",
                             rounds = self.d_t,
                             distance = self.code_size,
                             after_clifford_depolarization = p,

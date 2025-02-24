@@ -26,28 +26,38 @@ def parse_yaml(yaml_config):
         config["paths"] = {
             "root": "../",
             "save_dir": "../training_outputs",
-            "model_name": "graph_decoder"
+            "model_name": "graph_decoder",
+            "save_model_dir": "temp_dir",
+            "saved_model_path": "temp_dir"
         }
         config["model_settings"] = {
-            "hidden_channels_GCN": [32, 128, 256, 512, 512, 256, 256],
+            # "hidden_channels_GCN": [32, 128, 256, 512, 512, 256, 256],
+            "hidden_channels_GCN": [32, 128, 256],
             "hidden_channels_MLP": [256, 128, 64],
-            "num_classes": 12
+            # "num_classes": 12
+            "num_classes": 1
         }
         config["graph_settings"] = {
-            "code_size": 7,
+            "code_size": 3,
             "error_rate": 0.001,
-            "m_nearest_nodes": 5
+            "m_nearest_nodes": 5,
+            "d_t": 1,
+            "train_error_rate": 0.2,
+            "test_error_rate": 0.2
         }
         device = "cuda" if torch.cuda.is_available() else "cpu"
         config["training_settings"] = {
             "seed": None,
-            "dataset_size": 50000,
-            "batch_size": 4096,
-            "epochs": 5,
+            "dataset_size": 256,
+            "batch_size": 16,
+            "epochs": 1,
             "lr": 0.01,
             "device": device,
             "resume_training": False,
-            "current_epoch": 0
+            "current_epoch": 0,
+            "wandb": False,
+            "validation_set_size": 1,
+            "test_set_size": 1
         }
     
     # read settings into variables

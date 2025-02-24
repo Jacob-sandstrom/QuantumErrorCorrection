@@ -1,0 +1,23 @@
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_setup.py:_flush():68] Current SDK version is 0.19.6
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_setup.py:_flush():68] Configure stats pid to 10988
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_setup.py:_flush():68] Loading settings from C:\Users\jojac\.config\wandb\settings
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_setup.py:_flush():68] Loading settings from C:\Users\jojac\Documents\QuantumErrorCorrection\wandb\settings
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_setup.py:_flush():68] Loading settings from environment variables
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_init.py:setup_run_log_directory():637] Logging user logs to C:\Users\jojac\Documents\QuantumErrorCorrection\wandb\run-20250224_200957-u25htirn\logs\debug.log
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_init.py:setup_run_log_directory():638] Logging internal logs to C:\Users\jojac\Documents\QuantumErrorCorrection\wandb\run-20250224_200957-u25htirn\logs\debug-internal.log
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_init.py:init():756] calling init triggers
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_init.py:init():761] wandb.init called with sweep_config: {}
+config: {'hidden_channels_GCN': [32, 128, 256, 512, 512, 256, 256], 'hidden_channels_MLP': [256, 128, 64], 'num_classes': 12, 'code_size': 7, 'error_rate': 0.001, 'm_nearest_nodes': 5, 'd_t': 3, 'train_error_rate': 0.2, 'test_error_rate': 0.2, 'seed': None, 'dataset_size': 50, 'batch_size': 10, 'epochs': 1, 'lr': 0.01, 'device': 'cpu', 'resume_training': False, 'current_epoch': 0, 'wandb': 'NONE', 'validation_set_size': 10, 'test_set_size': 10, '_wandb': {}}
+2025-02-24 20:09:57,836 INFO    MainThread:10988 [wandb_init.py:init():789] starting backend
+2025-02-24 20:09:58,116 INFO    MainThread:10988 [wandb_init.py:init():793] sending inform_init request
+2025-02-24 20:09:58,132 INFO    MainThread:10988 [backend.py:_multiprocessing_setup():97] multiprocessing start_methods=spawn, using: spawn
+2025-02-24 20:09:58,133 INFO    MainThread:10988 [wandb_init.py:init():808] backend started and connected
+2025-02-24 20:09:58,133 INFO    MainThread:10988 [wandb_init.py:init():901] updated telemetry
+2025-02-24 20:09:58,162 INFO    MainThread:10988 [wandb_init.py:init():936] communicating run to backend with 90.0 second timeout
+2025-02-24 20:09:58,630 INFO    MainThread:10988 [wandb_init.py:init():994] starting run threads in backend
+2025-02-24 20:09:58,939 INFO    MainThread:10988 [wandb_run.py:_console_start():2385] atexit reg
+2025-02-24 20:09:58,939 INFO    MainThread:10988 [wandb_run.py:_redirect():2235] redirect: wrap_raw
+2025-02-24 20:09:58,940 INFO    MainThread:10988 [wandb_run.py:_redirect():2300] Wrapping output streams.
+2025-02-24 20:09:58,940 INFO    MainThread:10988 [wandb_run.py:_redirect():2325] Redirects installed.
+2025-02-24 20:09:58,942 INFO    MainThread:10988 [wandb_init.py:init():1036] run started, returning control to user process
+2025-02-24 20:09:59,055 WARNING MsgRouterThr:10988 [router.py:message_loop():75] message_loop has been closed
