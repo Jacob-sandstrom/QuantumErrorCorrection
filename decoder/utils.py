@@ -57,7 +57,7 @@ def parse_yaml(yaml_config):
             "current_epoch": 0,
             "wandb": False,
             "validation_set_size": 1,
-            "test_set_size": 1
+            "test_set_size": 2
         }
     
     # read settings into variables

@@ -42,13 +42,17 @@ d.train()
 
 # %%
 
-import numpy as np
+# import numpy as np
 
 
-syndrome = np.array([np.array([np.array([1,0,0,1]),np.array([1,1,1,0])])])
+# syndrome = np.array([np.array([np.array([np.array([1,0,0,1])]),np.array([np.array([1,1,1,0])])])])
+# print(syndrome.shape)
 
-defect_inds = np.nonzero(syndrome)
-node_features = np.transpose(np.array(defect_inds)).astype(np.float32)
-batch_labels = node_features[:, 0].astype(np.int64)
-print("")
+# defect_inds = np.nonzero(syndrome)
+# print(defect_inds)
+# node_features = np.transpose(np.array(defect_inds)).astype(np.float32)
+# batch_labels = node_features[:, 0].astype(np.int64)
+# print(node_features)
+# print(node_features[:, 1:])
+# print(batch_labels)
 # %%
