@@ -1,7 +1,9 @@
 import numpy as np
 import torch
 import scipy
+import json
 
+# Should not be used since the transition from stim to qiskit
 def sample_syndromes(n_shots, compiled_sampler, device):
     # distinguish between training and testing:
     if compiled_sampler.__class__ == list:
@@ -87,3 +89,41 @@ def get_batch_of_edges(node_features, batch_labels, device):
     edge_index = torch.from_numpy(edge_index).to(device)
 
     return edge_index.T, edge_attr
+
+
+
+
+def fetch_data(outcome_file, syndrome_file, device):
+    with open(outcome_file, 'r') as infile:
+        outcome_data = json.load(infile)
+
+    with open(syndrome_file, 'r') as infile:
+        syndrome_data = json.load(infile)
+
+    n_syndrome_shots = len(syndrome_data)
+    s0 = syndrome_data["0"]
+    n_measure = len(s0)
+    n_x = len(s0[0])
+
+    if len(outcome_data) != n_syndrome_shots:
+        raise Exception("Number of syndromes in outcome and syndromes mismatch")
+
+
+    flips = []
+    for i, shot in enumerate(outcome_data.keys()):
+        flips.append([outcome_data[shot][0]])
+    flips = torch.tensor(flips, dtype=torch.float32).to(device)
+
+    # syndromes in the shape [n_syndrome_shots, x_coordinate, z_coordinate, time]
+    # z_coordinate is always 1 for repetition code
+    syndromes = np.empty((n_syndrome_shots,n_x,1,n_measure))
+    trivial = []
+    for i, shot in enumerate(syndrome_data.keys()):
+        d = np.transpose(np.array(syndrome_data[shot]))
+        d = np.reshape(d, (n_x,1,n_measure))
+        syndromes[i] = d
+        trivial.append(bool(np.sum(syndrome_data[shot])))
+
+    trivial = np.logical_not(trivial)
+
+    return syndromes, flips, trivial

@@ -6,7 +6,7 @@ import os
 
 from utils import parse_yaml
 from gnn_models import GNN_7
-from graph_representation import sample_syndromes, get_batch_of_node_features
+from graph_representation import fetch_data, get_batch_of_node_features
 from graph_representation import get_batch_of_edges
 
 import wandb
@@ -131,6 +131,7 @@ class Decoder:
         self.model.load_state_dict(saved_attributes["model"])
         self.optimizer.load_state_dict(saved_attributes["optimizer"])
 
+    # Should not be used since switch from stim to qiskit
     def initialise_simulations(self, error_rate):
         # build the circuit, standard: d_t = code distance
         # training set, exclude trivial syndromes
@@ -181,6 +182,7 @@ class Decoder:
         syndrome_z = np.rot90(syndrome_x) * 3
         self.syndrome_mask = np.dstack([syndrome_x + syndrome_z] * (self.d_t + 1))
     
+    # Should not be used since switch from stim to qiskit
     def stim_to_syndrome_3D(self, detection_events_list):
         '''
         Converts a stim detection event array to a syndrome grid. 
@@ -197,8 +199,8 @@ class Decoder:
         return syndrome_3D
 
     def get_batch_of_graphs(self, syndromes):
-        # convert to syndrome matrix:
-        syndromes = self.stim_to_syndrome_3D(syndromes)
+        # # convert to syndrome matrix:
+        # syndromes = self.stim_to_syndrome_3D(syndromes)
         # get the node features:
         node_features, batch_labels = get_batch_of_node_features(syndromes)
         # get the edges:
@@ -234,7 +236,7 @@ class Decoder:
         batch_size = self.training_settings["batch_size"]
         validation_set_size = self.training_settings["validation_set_size"]
         test_set_size = self.training_settings["test_set_size"]
-        n_batches = dataset_size // batch_size
+        n_batches = (dataset_size-validation_set_size-test_set_size) // batch_size
         loss_fun = torch.nn.BCEWithLogitsLoss()
         sigmoid = torch.nn.Sigmoid()
 
@@ -243,9 +245,26 @@ class Decoder:
             param_group['lr'] = self.training_settings["lr"]
 
         # generate test set
-        self.initialise_simulations(self.test_error_rate)
-        test_syndromes, test_observable_flips, test_n_trivial_syndromes = \
-            sample_syndromes(test_set_size, self.compiled_sampler, self.device)
+        # self.initialise_simulations(self.test_error_rate)
+        # test_syndromes, test_observable_flips, test_n_trivial = \
+        #     sample_syndromes(test_set_size, self.compiled_sampler, self.device)
+
+        # Fetch syndrome and outcome data
+        # outcome_file = "test_data/Outcome_data/outcome_dict_ibm_kyiv_simulator_3_100000_3_0.0.json"
+        # syndromes_file = "test_data/Detector_data/detector_dict_ibm_kyiv_simulator_3_100000_3_0.0.json"
+        outcome_file = self.training_settings["outcome_file"]
+        syndromes_file = self.training_settings["syndromes_file"]
+        all_syndromes, all_flips, all_trivial = fetch_data(outcome_file, syndromes_file, self.device)
+
+
+        test_trivial = all_trivial[0:test_set_size]
+        test_n_trivial = sum(test_trivial)
+
+        test_syndromes = all_syndromes[0:test_set_size]
+        test_syndromes = test_syndromes[np.logical_not(test_trivial)]
+
+        test_observable_flips = all_flips[0:test_set_size]
+        test_observable_flips = test_observable_flips[np.logical_not(test_trivial)]
 
         test_x, test_edge_index, test_batch_labels, test_edge_attr = self.get_batch_of_graphs(test_syndromes)
         # normalize the node features:
@@ -259,20 +278,40 @@ class Decoder:
 
         # generate train set:
         print(f'Running with {n_batches} batches of size {batch_size} per epoch.')
-        self.initialise_simulations(self.train_error_rate)
+        # self.initialise_simulations(self.train_error_rate)
 
-        # generate validation set
-        self.initialise_simulations(self.train_error_rate)
-        # the complete validation set containing batch_size data points:
-        syndromes, val_flips, n_trivial = sample_syndromes(validation_set_size, self.compiled_sampler, self.device)
-        val_x, val_edge_index, val_batch_labels, val_edge_attr = self.get_batch_of_graphs(syndromes)
+        # # generate validation set
+        # self.initialise_simulations(self.train_error_rate)
+        # # the complete validation set containing batch_size data points:
+        # syndromes, val_flips, n_trivial = sample_syndromes(validation_set_size, self.compiled_sampler, self.device)
+        
+        val_trivial = all_trivial[test_set_size:test_set_size+validation_set_size]
+        val_n_trivial = sum(val_trivial)
+
+        val_syndromes = all_syndromes[test_set_size:test_set_size+validation_set_size]
+        val_syndromes = val_syndromes[np.logical_not(val_trivial)]
+
+        val_flips = all_flips[test_set_size:test_set_size+validation_set_size]
+        val_flips = val_flips[np.logical_not(val_trivial)]
+
+        val_x, val_edge_index, val_batch_labels, val_edge_attr = self.get_batch_of_graphs(val_syndromes)
         # normalize the node features:
         val_x[:, 1] = (val_x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
         val_x[:, 2:] = (val_x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
         
         # the complete dataset containing batch_size data points:
         sample_start = time.perf_counter()
-        syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
+        # syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
+        
+        trivial = all_trivial[test_set_size+validation_set_size:]
+        n_trivial = sum(trivial)
+
+        syndromes = all_syndromes[test_set_size+validation_set_size:]
+        syndromes = syndromes[np.logical_not(trivial)]
+
+        flips = all_flips[test_set_size+validation_set_size:]
+        flips = flips[np.logical_not(trivial)]
+
         x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes)
         # normalize the node features:
         x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
@@ -280,10 +319,10 @@ class Decoder:
         sample_end = time.perf_counter()
         time_sample += (sample_end - sample_start)
 
-        # INITIALIZE WANDBE
-        if self.wandb_log:
-            wandb.init(project="surface_codes", name = self.save_name, config = {
-                **self.model_settings, **self.graph_settings, **self.training_settings})
+        # # INITIALIZE WANDBE
+        # if self.wandb_log:
+        #     wandb.init(project="surface_codes", name = self.save_name, config = {
+        #         **self.model_settings, **self.graph_settings, **self.training_settings})
     
         for epoch in range(current_epoch, n_epochs):
             train_loss = 0
@@ -335,7 +374,7 @@ class Decoder:
             test_loss, test_accuracy = self.evaluate_test_set(test_x, test_edge_index,
                                                             test_batch_labels, test_edge_attr,
                                                             test_observable_flips,
-                                                            test_n_trivial_syndromes,
+                                                            test_n_trivial,
                                                             loss_fun,
                                                             test_set_size)
 

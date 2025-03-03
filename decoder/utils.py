@@ -48,16 +48,18 @@ def parse_yaml(yaml_config):
         device = "cuda" if torch.cuda.is_available() else "cpu"
         config["training_settings"] = {
             "seed": None,
-            "dataset_size": 256,
-            "batch_size": 16,
+            "dataset_size": 100000,
+            "batch_size": 1000,
             "epochs": 1,
             "lr": 0.01,
             "device": device,
             "resume_training": False,
             "current_epoch": 0,
             "wandb": False,
-            "validation_set_size": 1,
-            "test_set_size": 2
+            "validation_set_size": 1000,
+            "test_set_size": 1000,
+            "outcome_file": "test_data/Outcome_data/outcome_dict_ibm_kyiv_simulator_3_100000_3_0.0.json",
+            "syndromes_file": "test_data/Detector_data/detector_dict_ibm_kyiv_simulator_3_100000_3_0.0.json"
         }
     
     # read settings into variables

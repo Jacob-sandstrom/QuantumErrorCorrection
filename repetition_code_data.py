@@ -59,7 +59,7 @@ class repetition_code_data:
         self.time_steps = time_steps
         self.version = version
 
-    def format(self):
+    def format(self, raw_data = None):
         '''
         Format the raw qiskit data to a format that can be used by repetition_code_MWPM (and STIM).
 
@@ -85,9 +85,10 @@ class repetition_code_data:
         The first row contains the final qubit measurements and the strings are of length 3. The other rows
         contain ancilla measurements and the strings are of length 3-1=2.
         '''
-        with open(self.run + '_data/Raw_data/result_matrix_'+self.backend_name+'_'+str(self.code_distance)+'_'
-                +str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'r') as infile:
-            raw_data = json.load(infile)
+        if raw_data == None:
+            with open(self.run + '_data/Raw_data/result_matrix_'+self.backend_name+'_'+str(self.code_distance)+'_'
+                    +str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'r') as infile:
+                raw_data = json.load(infile)
         ancilla = self.code_distance-1
 
         def final_stab_state():
