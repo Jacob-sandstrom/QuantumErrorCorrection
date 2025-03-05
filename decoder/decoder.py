@@ -347,15 +347,15 @@ class Decoder:
                 train_loss += loss.item() * batch_size
                 epoch_n_graphs += batch_size
                 
-                # replace the dataset:
-                sample_start = time.perf_counter()
-                syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
-                x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes)
-                # normalize the node features:
-                x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
-                x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
-                sample_end = time.perf_counter()
-                time_sample += (sample_end - sample_start)
+                # # replace the dataset:
+                # sample_start = time.perf_counter()
+                # syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
+                # x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes)
+                # # normalize the node features:
+                # x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
+                # x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
+                # sample_end = time.perf_counter()
+                # time_sample += (sample_end - sample_start)
             
             # train
             train_loss /= epoch_n_graphs
