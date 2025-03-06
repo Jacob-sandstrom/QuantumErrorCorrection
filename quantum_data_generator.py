@@ -1,11 +1,12 @@
 # %%
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-# import qiskit
 from numpy import pi
 import numpy as np
 import pprint
 import repetition_code_data as rcd
 import json
+from pathlib import Path
+from time import sleep
 
 # Qiskit Runtime
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
@@ -20,20 +21,16 @@ from qiskit_aer import AerSimulator
 service = QiskitRuntimeService()
 
 
-run_name = "test_new"
+run_name = "dist3_time3"
 logic_qubits = 1
 qubits_per_logical = 3
 number_of_measurements = 3
-shots = 100
+shots = 50000
 backend_name = "ibm_kyiv"
 version = "0.0"
 
 # Simulate data or run on quantum computer
 simulate = True # Warning: be careful to use the correct setting before running on quantum as not to waste service time
-
-
-# backend_name = "ibm_brussels"
-
 
 
 backend = service.backend(backend_name)
@@ -110,6 +107,7 @@ isa_circuit = pm.run(circuit)
 # Sample data from backend
 sampler = Sampler(backend)
 job = sampler.run([isa_circuit], shots=shots)
+print(job.status())
 result = job.result()[0]
 
 
@@ -137,6 +135,26 @@ for i in range(shots):
 data = np.delete(data, trivial_index, axis=2)
 non_trivial_shots = data.shape[2]
 data = data.tolist()
+
+
+
+
+# Create directories for data
+
+paths = [run_name+"_data", run_name+"_data/Detector_data", run_name+"_data/Error_matrix", run_name+"_data/Format_data", run_name+"_data/Outcome_data", run_name+"_data/Raw_data"]
+
+for p in paths:
+    directory_path = Path(p)
+    # Create the directory
+    try:
+        directory_path.mkdir()
+        print(f"Directory '{directory_path}' created successfully.")
+    except FileExistsError:
+        print(f"Directory '{directory_path}' already exists.")
+    except PermissionError:
+        print(f"Permission denied: Unable to create '{directory_path}'.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 
