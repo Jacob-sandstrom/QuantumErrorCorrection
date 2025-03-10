@@ -25,7 +25,7 @@ run_name = "dist3_time3"
 logic_qubits = 1
 qubits_per_logical = 3
 number_of_measurements = 3
-shots = 500000
+shots = 100000
 backend_name = "ibm_kyiv"
 version = "0.0"
 
