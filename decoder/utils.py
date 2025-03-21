@@ -59,7 +59,8 @@ def parse_yaml(yaml_config):
             "validation_set_size": 1000,
             "test_set_size": 1000,
             "outcome_file": "dist3_time3_data/Outcome_data/outcome_dict_ibm_kyiv_simulator_3_70286_3_0.0.json",
-            "syndromes_file": "dist3_time3_data/Detector_data/detector_dict_ibm_kyiv_simulator_3_70286_3_0.0.json"
+            "syndromes_file": "dist3_time3_data/Detector_data/detector_dict_ibm_kyiv_simulator_3_70286_3_0.0.json",
+            "training_folder": "dist3_time3_data"
         }
     
     # read settings into variables

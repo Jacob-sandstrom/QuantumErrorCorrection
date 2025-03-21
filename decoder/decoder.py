@@ -16,6 +16,8 @@ from pathlib import Path
 from datetime import datetime
 import copy
 import time
+from os import listdir
+from os.path import isfile, join
 
 class Decoder:
     def __init__(self, yaml_config=None, script_name=None):
@@ -254,77 +256,82 @@ class Decoder:
         # syndromes_file = "test_data/Detector_data/detector_dict_ibm_kyiv_simulator_3_100000_3_0.0.json"
         outcome_file = self.training_settings["outcome_file"]
         syndromes_file = self.training_settings["syndromes_file"]
-        all_syndromes, all_flips, all_trivial = fetch_data(outcome_file, syndromes_file, self.device)
 
+        training_data_location = self.training_settings["training_folder"]
 
-        test_trivial = all_trivial[0:test_set_size]
-        test_n_trivial = sum(test_trivial)
+        onlyfiles = [f for f in listdir(training_data_location+"\Detector_data") if isfile(join(training_data_location+"\Detector_data", f))]
+        print(onlyfiles)
 
-        test_syndromes = all_syndromes[0:test_set_size]
-        test_syndromes = test_syndromes[np.logical_not(test_trivial)]
+        for epoch in range(current_epoch, n_epochs):
+            all_syndromes, all_flips, all_trivial = fetch_data(outcome_file, syndromes_file, self.device)
+            
+            test_trivial = all_trivial[0:test_set_size]
+            test_n_trivial = sum(test_trivial)
 
-        test_observable_flips = all_flips[0:test_set_size]
-        test_observable_flips = test_observable_flips[np.logical_not(test_trivial)]
+            test_syndromes = all_syndromes[0:test_set_size]
+            test_syndromes = test_syndromes[np.logical_not(test_trivial)]
 
-        test_x, test_edge_index, test_batch_labels, test_edge_attr = self.get_batch_of_graphs(test_syndromes)
-        # normalize the node features:
-        test_x[:, 1] = (test_x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
-        test_x[:, 2:] = (test_x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
+            test_observable_flips = all_flips[0:test_set_size]
+            test_observable_flips = test_observable_flips[np.logical_not(test_trivial)]
 
-        # TIMING:
-        time_sample = 0.
-        time_fit = 0.
-        time_write = 0.
+            test_x, test_edge_index, test_batch_labels, test_edge_attr = self.get_batch_of_graphs(test_syndromes)
+            # normalize the node features:
+            test_x[:, 1] = (test_x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
+            test_x[:, 2:] = (test_x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
 
-        # generate train set:
-        print(f'Running with {n_batches} batches of size {batch_size} per epoch.')
-        # self.initialise_simulations(self.train_error_rate)
+            # TIMING:
+            time_sample = 0.
+            time_fit = 0.
+            time_write = 0.
 
-        # # generate validation set
-        # self.initialise_simulations(self.train_error_rate)
-        # # the complete validation set containing batch_size data points:
-        # syndromes, val_flips, n_trivial = sample_syndromes(validation_set_size, self.compiled_sampler, self.device)
-        
-        val_trivial = all_trivial[test_set_size:test_set_size+validation_set_size]
-        val_n_trivial = sum(val_trivial)
+            # generate train set:
+            print(f'Running with {n_batches} batches of size {batch_size} per epoch.')
+            # self.initialise_simulations(self.train_error_rate)
 
-        val_syndromes = all_syndromes[test_set_size:test_set_size+validation_set_size]
-        val_syndromes = val_syndromes[np.logical_not(val_trivial)]
+            # # generate validation set
+            # self.initialise_simulations(self.train_error_rate)
+            # # the complete validation set containing batch_size data points:
+            # syndromes, val_flips, n_trivial = sample_syndromes(validation_set_size, self.compiled_sampler, self.device)
+            
+            # val_trivial = all_trivial[test_set_size:test_set_size+validation_set_size]
+            # val_n_trivial = sum(val_trivial)
 
-        val_flips = all_flips[test_set_size:test_set_size+validation_set_size]
-        val_flips = val_flips[np.logical_not(val_trivial)]
+            # val_syndromes = all_syndromes[test_set_size:test_set_size+validation_set_size]
+            # val_syndromes = val_syndromes[np.logical_not(val_trivial)]
 
-        val_x, val_edge_index, val_batch_labels, val_edge_attr = self.get_batch_of_graphs(val_syndromes)
-        # normalize the node features:
-        val_x[:, 1] = (val_x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
-        val_x[:, 2:] = (val_x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
-        
-        # the complete dataset containing batch_size data points:
-        sample_start = time.perf_counter()
-        # syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
-        
-        trivial = all_trivial[test_set_size+validation_set_size:]
-        n_trivial = sum(trivial)
+            # val_flips = all_flips[test_set_size:test_set_size+validation_set_size]
+            # val_flips = val_flips[np.logical_not(val_trivial)]
 
-        syndromes = all_syndromes[test_set_size+validation_set_size:]
-        syndromes = syndromes[np.logical_not(trivial)]
+            # val_x, val_edge_index, val_batch_labels, val_edge_attr = self.get_batch_of_graphs(val_syndromes)
+            # # normalize the node features:
+            # val_x[:, 1] = (val_x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
+            # val_x[:, 2:] = (val_x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
+            
+            # the complete dataset containing batch_size data points:
+            sample_start = time.perf_counter()
+            # syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
+            
+            trivial = all_trivial[test_set_size:]
+            n_trivial = sum(trivial)
 
-        flips = all_flips[test_set_size+validation_set_size:]
-        flips = flips[np.logical_not(trivial)]
+            syndromes = all_syndromes[test_set_size:]
+            syndromes = syndromes[np.logical_not(trivial)]
 
-        x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes)
-        # normalize the node features:
-        x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
-        x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
-        sample_end = time.perf_counter()
-        time_sample += (sample_end - sample_start)
+            flips = all_flips[test_set_size:]
+            flips = flips[np.logical_not(trivial)]
+
+            x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes)
+            # normalize the node features:
+            x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
+            x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
+            sample_end = time.perf_counter()
+            time_sample += (sample_end - sample_start)
 
         # # INITIALIZE WANDBE
         # if self.wandb_log:
         #     wandb.init(project="surface_codes", name = self.save_name, config = {
         #         **self.model_settings, **self.graph_settings, **self.training_settings})
     
-        for epoch in range(current_epoch, n_epochs):
             train_loss = 0
             epoch_n_graphs = 0
             epoch_n_correct = 0
@@ -361,13 +368,13 @@ class Decoder:
             train_loss /= epoch_n_graphs
             train_accuracy = epoch_n_correct / (batch_size * n_batches)
 
-            # validation (set the n_trivial syndromes to 0)
-            val_loss, val_accuracy = self.evaluate_test_set(val_x, val_edge_index,
-                                                        val_batch_labels, val_edge_attr,
-                                                        val_flips,
-                                                        0,
-                                                        loss_fun,
-                                                        validation_set_size)
+            # # validation (set the n_trivial syndromes to 0)
+            # val_loss, val_accuracy = self.evaluate_test_set(val_x, val_edge_index,
+            #                                             val_batch_labels, val_edge_attr,
+            #                                             val_flips,
+            #                                             0,
+            #                                             loss_fun,
+            #                                             validation_set_size)
             
             # test
             print(test_x[:5, :])
