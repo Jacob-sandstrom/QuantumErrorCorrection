@@ -259,10 +259,27 @@ class Decoder:
 
         training_data_location = self.training_settings["training_folder"]
 
-        onlyfiles = [f for f in listdir(training_data_location+"\Detector_data") if isfile(join(training_data_location+"\Detector_data", f))]
-        print(onlyfiles)
+        detector_files = [f for f in listdir(training_data_location+"\Detector_data") if isfile(join(training_data_location+"\Detector_data", f))]
+        outcome_files = [f for f in listdir(training_data_location+"\Outcome_data") if isfile(join(training_data_location+"\Outcome_data", f))]
+        print(detector_files)
+        print(outcome_files)
+        # for epoch in range(current_epoch, n_epochs):
+        for epoch in range(len(detector_files)):
+            syndromes_file = training_data_location + "/Detector_data/"+ detector_files[epoch]
+            outcome_file = training_data_location + "/Outcome_data/"+ outcome_files[epoch]
 
-        for epoch in range(current_epoch, n_epochs):
+            # Settings
+            current_epoch = 0
+            n_epochs = len(detector_files)
+            dataset_size = int(detector_files[epoch].split("_")[-3])
+            batch_size = self.training_settings["batch_size"]
+            # validation_set_size = self.training_settings["validation_set_size"]
+            test_set_size = self.training_settings["test_set_size"]
+            n_batches = (dataset_size-test_set_size) // batch_size
+
+            
+
+
             all_syndromes, all_flips, all_trivial = fetch_data(outcome_file, syndromes_file, self.device)
             
             test_trivial = all_trivial[0:test_set_size]
@@ -285,7 +302,7 @@ class Decoder:
             time_write = 0.
 
             # generate train set:
-            print(f'Running with {n_batches} batches of size {batch_size} per epoch.')
+            print(f'Running epoch {epoch} with {n_batches} batches of size {batch_size}. Total epoch size: {dataset_size}')
             # self.initialise_simulations(self.train_error_rate)
 
             # # generate validation set
@@ -336,6 +353,9 @@ class Decoder:
             epoch_n_graphs = 0
             epoch_n_correct = 0
             for j in range(n_batches):
+                
+                if j % (n_batches//20) == 0:
+                    print(f"Running batch: {j}")
                 # forward/backward pass
                 fit_start = time.perf_counter()
                 self.optimizer.zero_grad()
@@ -354,6 +374,7 @@ class Decoder:
                 train_loss += loss.item() * batch_size
                 epoch_n_graphs += batch_size
                 
+
                 # # replace the dataset:
                 # sample_start = time.perf_counter()
                 # syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
@@ -385,27 +406,28 @@ class Decoder:
                                                             loss_fun,
                                                             test_set_size)
 
-            print(f'Epoch: {epoch}, Loss: {train_loss:.4f}, Acc: {train_accuracy:.4f}, Val Acc: {val_accuracy:.4f}, Test Acc: {test_accuracy:.4f}')
+            # print(f'Epoch: {epoch}, Loss: {train_loss:.4f}, Acc: {train_accuracy:.4f}, Val Acc: {val_accuracy:.4f}, Test Acc: {test_accuracy:.4f}')
+            print(f'Epoch: {epoch}, Loss: {train_loss:.4f}, Acc: {train_accuracy:.4f}, Test Acc: {test_accuracy:.4f}')
 
             write_start = time.perf_counter()
             # save training attributes after every epoch
             self.training_history["epoch"] = epoch
             self.training_history["train_loss"].append(train_loss)
-            self.training_history["val_loss"].append(val_loss)
+            # self.training_history["val_loss"].append(val_loss)
             self.training_history["test_loss"].append(test_loss)
             self.training_history["train_accuracy"].append(train_accuracy)
-            self.training_history["val_accuracy"].append(val_accuracy)
+            # self.training_history["val_accuracy"].append(val_accuracy)
             self.training_history["test_accuracy"].append(test_accuracy)
             self.save_model_w_training_settings()
 
             # Log training and testing metrics to wandb
-            if self.wandb_log:
-                metrics = {'loss': train_loss, 'accuracy': train_accuracy, 
-                           'validation accuracy': val_accuracy,
-                           'test accuracy': test_accuracy}
-                wandb.log(metrics)
-            write_end = time.perf_counter()
-            time_write += (write_end - write_start)
+            # if self.wandb_log:
+            #     metrics = {'loss': train_loss, 'accuracy': train_accuracy, 
+            #             #    'validation accuracy': val_accuracy,
+            #                'test accuracy': test_accuracy}
+            #     wandb.log(metrics)
+            # write_end = time.perf_counter()
+            # time_write += (write_end - write_start)
         
         runtime = time.perf_counter()-time_start
         print('Training completed after {:.1f}:{:.1f}:{:.1f}'.format(*divmod(divmod(
