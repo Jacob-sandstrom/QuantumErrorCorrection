@@ -9,8 +9,8 @@ from gnn_models import GNN_7
 from graph_representation import fetch_data, get_batch_of_node_features
 from graph_representation import get_batch_of_edges
 
-import wandb
-os.environ["WANDB_SILENT"] = "True"
+# import wandb
+# os.environ["WANDB_SILENT"] = "True"
 
 from pathlib import Path
 from datetime import datetime
@@ -30,17 +30,18 @@ class Decoder:
         self.graph_settings = graph_settings
         self.training_settings = training_settings
 
-        self.wandb_log = self.training_settings["wandb"]
+        # self.wandb_log = self.training_settings["wandb"]
 
-        self.code_size = self.graph_settings["code_size"]
-        self.d_t = self.graph_settings["d_t"]
+        self.script_name = script_name
+        # self.code_size = self.graph_settings["code_size"]
+        # self.d_t = self.graph_settings["d_t"]
         self.train_error_rate = self.graph_settings["train_error_rate"]
         self.test_error_rate = self.graph_settings["test_error_rate"]
         self.m_nearest_nodes = self.graph_settings["m_nearest_nodes"]
         self.sigmoid = torch.nn.Sigmoid()
 
         # current training status
-        self.epoch = training_settings["current_epoch"]
+        # self.epoch = training_settings["current_epoch"]
         if training_settings["device"] == "cuda":
             self.device = torch.device(
                 training_settings["device"] if torch.cuda.is_available() else "cpu"
@@ -50,7 +51,7 @@ class Decoder:
 
        # create a dictionary saving training metrics
         training_history = {}
-        training_history["epoch"] = self.epoch
+        training_history["epoch"] = 0
         training_history["train_loss"] = []
         training_history["train_accuracy"] = []
         training_history["test_loss"] = []
@@ -76,12 +77,19 @@ class Decoder:
         current_datetime = datetime.now().strftime("%y%m%d_%H%M%S")
 
         # generate a unique name to not overwrite other models
+        # self.create_name()
+
+        # check if model should be loaded
+        if training_settings["resume_training"]:
+            self.load_trained_model()
+
+    def create_name(self):
         name = ("d" +
-                str(graph_settings["code_size"]) +
+                str(self.code_size) +
                 "_d_t_" +
-                str(graph_settings["d_t"]) +
-                '_' + current_datetime +
-                '_' + script_name)
+                str(self.d_t) +
+                '_' + datetime.now().strftime("%y%m%d_%H%M%S") +
+                '_' + self.script_name)
         save_path = self.save_dir / (name + ".pt")
         self.save_name = name
 
@@ -89,14 +97,8 @@ class Decoder:
         if save_path.is_file():
             save_path = self.save_dir / (name + "_1.pt")
 
-        save_model_path = self.save_model_dir / (name + "_model.pt")
-
-        self.save_model_path = save_model_path
+        self.save_model_path = self.save_model_dir / (name + "_model.pt")
         self.save_path = save_path
-
-        # check if model should be loaded
-        if training_settings["resume_training"]:
-            self.load_trained_model()
 
     def save_model_w_training_settings(self):
         # make sure the save folder exists, else create it
@@ -201,8 +203,6 @@ class Decoder:
         return syndrome_3D
 
     def get_batch_of_graphs(self, syndromes):
-        # # convert to syndrome matrix:
-        # syndromes = self.stim_to_syndrome_3D(syndromes)
         # get the node features:
         node_features, batch_labels = get_batch_of_node_features(syndromes)
         # get the edges:
@@ -229,16 +229,16 @@ class Decoder:
         val_accuracy = (correct_preds + n_trivial_syndromes) / n_samples
         return val_loss, val_accuracy
 
-    def train(self):
+    def train(self, training_data_location=None):
         time_start = time.perf_counter()
         # training settings
-        current_epoch = self.epoch
-        n_epochs = self.training_settings["epochs"]
-        dataset_size = self.training_settings["dataset_size"]
-        batch_size = self.training_settings["batch_size"]
-        validation_set_size = self.training_settings["validation_set_size"]
+        # current_epoch = self.epoch
+        # n_epochs = self.training_settings["epochs"]
+        # dataset_size = self.training_settings["dataset_size"]
+        # batch_size = self.training_settings["batch_size"]
+        # validation_set_size = self.training_settings["validation_set_size"]
         test_set_size = self.training_settings["test_set_size"]
-        n_batches = (dataset_size-validation_set_size-test_set_size) // batch_size
+        # n_batches = (dataset_size-validation_set_size-test_set_size) // batch_size
         loss_fun = torch.nn.BCEWithLogitsLoss()
         sigmoid = torch.nn.Sigmoid()
 
@@ -246,40 +246,33 @@ class Decoder:
         for param_group in self.optimizer.param_groups:
             param_group['lr'] = self.training_settings["lr"]
 
-        # generate test set
-        # self.initialise_simulations(self.test_error_rate)
-        # test_syndromes, test_observable_flips, test_n_trivial = \
-        #     sample_syndromes(test_set_size, self.compiled_sampler, self.device)
 
         # Fetch syndrome and outcome data
-        # outcome_file = "test_data/Outcome_data/outcome_dict_ibm_kyiv_simulator_3_100000_3_0.0.json"
-        # syndromes_file = "test_data/Detector_data/detector_dict_ibm_kyiv_simulator_3_100000_3_0.0.json"
-        outcome_file = self.training_settings["outcome_file"]
-        syndromes_file = self.training_settings["syndromes_file"]
-
-        training_data_location = self.training_settings["training_folder"]
-
+        if training_data_location == None:
+            training_data_location = self.training_settings["training_folder"]
         detector_files = [f for f in listdir(training_data_location+"\Detector_data") if isfile(join(training_data_location+"\Detector_data", f))]
         outcome_files = [f for f in listdir(training_data_location+"\Outcome_data") if isfile(join(training_data_location+"\Outcome_data", f))]
         print(detector_files)
         print(outcome_files)
-        # for epoch in range(current_epoch, n_epochs):
+        settings = detector_files[0].split("_")
+        self.code_size = int(settings[-4])
+        self.d_t = int(settings[-2])
+        print(f"Code distance: {self.code_size}")
+        print(f"Time steps: {self.d_t}")
+        self.create_name()
+
         for epoch in range(len(detector_files)):
             syndromes_file = training_data_location + "/Detector_data/"+ detector_files[epoch]
             outcome_file = training_data_location + "/Outcome_data/"+ outcome_files[epoch]
 
             # Settings
             current_epoch = 0
-            n_epochs = len(detector_files)
             dataset_size = int(detector_files[epoch].split("_")[-3])
             batch_size = self.training_settings["batch_size"]
-            # validation_set_size = self.training_settings["validation_set_size"]
             test_set_size = self.training_settings["test_set_size"]
             n_batches = (dataset_size-test_set_size) // batch_size
 
             
-
-
             all_syndromes, all_flips, all_trivial = fetch_data(outcome_file, syndromes_file, self.device)
             
             test_trivial = all_trivial[0:test_set_size]
@@ -305,28 +298,8 @@ class Decoder:
             print(f'Running epoch {epoch} with {n_batches} batches of size {batch_size}. Total epoch size: {dataset_size}')
             # self.initialise_simulations(self.train_error_rate)
 
-            # # generate validation set
-            # self.initialise_simulations(self.train_error_rate)
-            # # the complete validation set containing batch_size data points:
-            # syndromes, val_flips, n_trivial = sample_syndromes(validation_set_size, self.compiled_sampler, self.device)
-            
-            # val_trivial = all_trivial[test_set_size:test_set_size+validation_set_size]
-            # val_n_trivial = sum(val_trivial)
-
-            # val_syndromes = all_syndromes[test_set_size:test_set_size+validation_set_size]
-            # val_syndromes = val_syndromes[np.logical_not(val_trivial)]
-
-            # val_flips = all_flips[test_set_size:test_set_size+validation_set_size]
-            # val_flips = val_flips[np.logical_not(val_trivial)]
-
-            # val_x, val_edge_index, val_batch_labels, val_edge_attr = self.get_batch_of_graphs(val_syndromes)
-            # # normalize the node features:
-            # val_x[:, 1] = (val_x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
-            # val_x[:, 2:] = (val_x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
-            
             # the complete dataset containing batch_size data points:
             sample_start = time.perf_counter()
-            # syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
             
             trivial = all_trivial[test_set_size:]
             n_trivial = sum(trivial)
@@ -344,17 +317,13 @@ class Decoder:
             sample_end = time.perf_counter()
             time_sample += (sample_end - sample_start)
 
-        # # INITIALIZE WANDBE
-        # if self.wandb_log:
-        #     wandb.init(project="surface_codes", name = self.save_name, config = {
-        #         **self.model_settings, **self.graph_settings, **self.training_settings})
-    
+
             train_loss = 0
             epoch_n_graphs = 0
             epoch_n_correct = 0
             for j in range(n_batches):
                 
-                if j % (n_batches//20) == 0:
+                if j % (n_batches//20+1) == 0:
                     print(f"Running batch: {j}")
                 # forward/backward pass
                 fit_start = time.perf_counter()
@@ -375,28 +344,11 @@ class Decoder:
                 epoch_n_graphs += batch_size
                 
 
-                # # replace the dataset:
-                # sample_start = time.perf_counter()
-                # syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
-                # x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes)
-                # # normalize the node features:
-                # x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
-                # x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
-                # sample_end = time.perf_counter()
-                # time_sample += (sample_end - sample_start)
-            
             # train
             train_loss /= epoch_n_graphs
             train_accuracy = epoch_n_correct / (batch_size * n_batches)
 
-            # # validation (set the n_trivial syndromes to 0)
-            # val_loss, val_accuracy = self.evaluate_test_set(val_x, val_edge_index,
-            #                                             val_batch_labels, val_edge_attr,
-            #                                             val_flips,
-            #                                             0,
-            #                                             loss_fun,
-            #                                             validation_set_size)
-            
+
             # test
             print(test_x[:5, :])
             test_loss, test_accuracy = self.evaluate_test_set(test_x, test_edge_index,
@@ -406,28 +358,17 @@ class Decoder:
                                                             loss_fun,
                                                             test_set_size)
 
-            # print(f'Epoch: {epoch}, Loss: {train_loss:.4f}, Acc: {train_accuracy:.4f}, Val Acc: {val_accuracy:.4f}, Test Acc: {test_accuracy:.4f}')
             print(f'Epoch: {epoch}, Loss: {train_loss:.4f}, Acc: {train_accuracy:.4f}, Test Acc: {test_accuracy:.4f}')
 
             write_start = time.perf_counter()
             # save training attributes after every epoch
             self.training_history["epoch"] = epoch
             self.training_history["train_loss"].append(train_loss)
-            # self.training_history["val_loss"].append(val_loss)
             self.training_history["test_loss"].append(test_loss)
             self.training_history["train_accuracy"].append(train_accuracy)
-            # self.training_history["val_accuracy"].append(val_accuracy)
             self.training_history["test_accuracy"].append(test_accuracy)
             self.save_model_w_training_settings()
 
-            # Log training and testing metrics to wandb
-            # if self.wandb_log:
-            #     metrics = {'loss': train_loss, 'accuracy': train_accuracy, 
-            #             #    'validation accuracy': val_accuracy,
-            #                'test accuracy': test_accuracy}
-            #     wandb.log(metrics)
-            # write_end = time.perf_counter()
-            # time_write += (write_end - write_start)
         
         runtime = time.perf_counter()-time_start
         print('Training completed after {:.1f}:{:.1f}:{:.1f}'.format(*divmod(divmod(
@@ -437,21 +378,48 @@ class Decoder:
         print(f'Fitting: {time_fit:.0f}s')
         print(f'Writing: {time_write:.0f}s')
     
-    def test(self):
+    def test(self, testing_data_location=None, model_path=None):
         print("==============TESTING==============")
         time_start = time.perf_counter()
         loss_fun = torch.nn.BCEWithLogitsLoss()
 
-        self.initialise_simulations(self.test_error_rate)
-        batch_size = self.training_settings["acc_test_batch_size"]
-        n_test_batches = self.training_settings["acc_test_size"] // batch_size
+        # batch_size = self.training_settings["acc_test_batch_size"]
+        # batch_size = 1000
+        # n_test_batches = self.training_settings["acc_test_size"] // batch_size
+        n_test_batches = 1
 
         test_accuracy = 0
         n_trivial_syndromes = 0
-        for i in range(n_test_batches):
-            # generate test set
-            syndromes, observable_flips, n_trivial_syndromes = \
-                sample_syndromes(batch_size, self.compiled_sampler, self.device)
+        if testing_data_location == None:
+            testing_data_location = self.training_settings["testing_folder"]
+        if model_path:
+            self.saved_model_path = model_path
+            self.load_trained_model()
+
+        detector_files = [f for f in listdir(testing_data_location+"\Detector_data") if isfile(join(testing_data_location+"\Detector_data", f))]
+        outcome_files = [f for f in listdir(testing_data_location+"\Outcome_data") if isfile(join(testing_data_location+"\Outcome_data", f))]
+        print(detector_files)
+        print(outcome_files)
+        settings = detector_files[0].split("_")
+        self.code_size = int(settings[-4])
+        self.d_t = int(settings[-2])
+        print(f"Code distance: {self.code_size}")
+        print(f"Time steps: {self.d_t}")
+        self.create_name()
+
+        for epoch in range(len(detector_files)):
+            syndromes_file = testing_data_location + "/Detector_data/"+ detector_files[epoch]
+            outcome_file = testing_data_location + "/Outcome_data/"+ outcome_files[epoch]
+
+            # Settings
+            current_epoch = 0
+            dataset_size = int(detector_files[epoch].split("_")[-3])
+            # n_batches = (dataset_size) // batch_size
+            batch_size = dataset_size
+
+            syndromes, observable_flips, trivial = fetch_data(outcome_file, syndromes_file, self.device)
+            n_trivial = sum(trivial)
+
             val_x, val_edge_index, val_batch_labels, val_edge_attr = self.get_batch_of_graphs(syndromes)
 
             # normalize the node features:
