@@ -21,16 +21,19 @@ from qiskit_aer import AerSimulator
 service = QiskitRuntimeService()
 
 
-run_name = "dist3_time3"
+# run_name = "dist3_time3"
 logic_qubits = 1
 qubits_per_logical = 3
 number_of_measurements = 3
 shots = 100000
-backend_name = "ibm_kyiv"
+# backend_name = "ibm_kyiv"
+backend_name = "ibm_marrakesh"
 version = "0.0"
 
+run_name = f"d{qubits_per_logical}_t{number_of_measurements}_{backend_name.split("_")[-1]}"
+
 # Simulate data or run on quantum computer
-simulate = True # Warning: be careful to use the correct setting before running on quantum as not to waste service time
+simulate = False # Warning: be careful to use the correct setting before running on quantum as not to waste service time
 
 
 backend = service.backend(backend_name)
@@ -141,7 +144,7 @@ data = data.tolist()
 
 # Create directories for data
 
-paths = [run_name+"_data", run_name+"_data/Detector_data", run_name+"_data/Error_matrix", run_name+"_data/Format_data", run_name+"_data/Outcome_data", run_name+"_data/Raw_data"]
+paths = ["data/"+run_name, "data/"+run_name+"_data/Detector_data", "data/"+run_name+"_data/Error_matrix", "data/"+run_name+"_data/Format_data", "data/"+run_name+"_data/Outcome_data", "data/"+run_name+"_data/Raw_data"]
 
 for p in paths:
     directory_path = Path(p)
