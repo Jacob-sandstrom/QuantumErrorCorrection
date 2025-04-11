@@ -7,4 +7,3 @@ d = decoder.Decoder(script_name="test")
 
 d.train()
 
-

@@ -214,12 +214,14 @@ class Decoder:
     def evaluate_test_set(self, x, edge_index, batch_label, edge_attr, flips, 
                           n_trivial_syndromes, loss_fun, n_samples):
         correct_preds = 0
-
+        
         # loop over batches
         with torch.no_grad():
+            
             out = self.model(x, edge_index, batch_label, edge_attr)
 
             prediction = (self.sigmoid(out.detach()) > 0.5).long()
+            
             target = flips.long()
             correct_preds += int(((prediction == target).sum(dim=1) == 
                                   self.model_settings["num_classes"]).sum().item())
@@ -323,12 +325,17 @@ class Decoder:
         # if self.wandb_log:
         #     wandb.init(project="surface_codes", name = self.save_name, config = {
         #         **self.model_settings, **self.graph_settings, **self.training_settings})
-    
+        import matplotlib.pyplot as plt
+        all_epoch_batch_accuracies = []
+        
         for epoch in range(current_epoch, n_epochs):
             train_loss = 0
             epoch_n_graphs = 0
             epoch_n_correct = 0
-            for j in range(n_batches):
+            batch_accuracies = []
+            val_acc=[]
+            test_acc=[]
+            for j in range(2): #n_batches
                 # forward/backward pass
                 fit_start = time.perf_counter()
                 self.optimizer.zero_grad()
@@ -342,11 +349,31 @@ class Decoder:
                 # update loss and accuracies
                 prediction = (sigmoid(out.detach()) > 0.5).long()
                 target = flips.long()
-                epoch_n_correct += int(((prediction == target).sum(dim=1) == 
+                correct = int(((prediction == target).sum(dim=1) == 
                             self.model_settings["num_classes"]).sum().item())
+                epoch_n_correct += correct
                 train_loss += loss.item() * batch_size
                 epoch_n_graphs += batch_size
                 
+                batch_accuracy = correct / batch_size
+                batch_accuracies.append(batch_accuracy)
+                #val_loss, val_accuracy = self.evaluate_test_set(val_x, val_edge_index,
+                                                        #val_batch_labels, val_edge_attr,
+                                                        #val_flips,
+                                                        #0,
+                                                        #loss_fun,
+                                                        #validation_set_size)
+                #test_loss, test_accuracy = self.evaluate_test_set(test_x, test_edge_index,
+                                                            #test_batch_labels, test_edge_attr,
+                                                            #test_observable_flips,
+                                                            #test_n_trivial,
+                                                            #loss_fun,
+                                                            #test_set_size)
+                #print(test_accuracy)
+                #val_acc.append(val_accuracy)
+                #test_acc.append(test_accuracy)
+            #all_epoch_batch_accuracies.append(batch_accuracies)
+
                 # # replace the dataset:
                 # sample_start = time.perf_counter()
                 # syndromes, flips, n_trivial = sample_syndromes(batch_size, self.compiled_sampler, self.device)
@@ -361,6 +388,19 @@ class Decoder:
             train_loss /= epoch_n_graphs
             train_accuracy = epoch_n_correct / (batch_size * n_batches)
 
+            #plt.figure(figsize=(12, 8))
+
+            #plt.plot(range(len(val_acc)), val_acc, label="Validation Accuracy", marker='o', linestyle='-')
+
+
+            #plt.plot(range(len(test_acc)), test_acc, label="Test Accuracy", marker='s', linestyle='--')
+
+            #plt.xlabel("Batch")
+            #plt.ylabel("Accuracy")
+            #plt.title("Batchvis accuracy")
+            #plt.legend()
+            #plt.grid(True)
+            #plt.show()
             # validation (set the n_trivial syndromes to 0)
             val_loss, val_accuracy = self.evaluate_test_set(val_x, val_edge_index,
                                                         val_batch_labels, val_edge_attr,
@@ -462,3 +502,4 @@ class Decoder:
                 self.train()
         else:
             self.test()
+

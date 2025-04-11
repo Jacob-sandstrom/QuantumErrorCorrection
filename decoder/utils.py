@@ -28,7 +28,7 @@ def parse_yaml(yaml_config):
             "save_dir": "../training_outputs",
             "model_name": "graph_decoder",
             "save_model_dir": "temp_dir",
-            "saved_model_path": "temp_dir"
+            "saved_model_path": "temp_dir\d3_d_t_1_250409_111425_test_model.pt"
         }
         config["model_settings"] = {
             # "hidden_channels_GCN": [32, 128, 256, 512, 512, 256, 256],
@@ -51,15 +51,15 @@ def parse_yaml(yaml_config):
             "dataset_size": 70206,
             "batch_size": 1000,
             "epochs": 1,
-            "lr": 0.01,
+            "lr": 0.001,
             "device": device,
             "resume_training": False,
             "current_epoch": 0,
             "wandb": False,
-            "validation_set_size": 1000,
-            "test_set_size": 1000,
-            "outcome_file": "dist3_time3_data/Outcome_data/outcome_dict_ibm_kyiv_simulator_3_70286_3_0.0.json",
-            "syndromes_file": "dist3_time3_data/Detector_data/detector_dict_ibm_kyiv_simulator_3_70286_3_0.0.json"
+            "validation_set_size": 10000,
+            "test_set_size": 10000,
+            "outcome_file": "dist3_time3_data\Outcome_data\outcome_dict_ibm_kyiv_simulator_3_70286_3_0.0.json",
+            "syndromes_file": "dist3_time3_data\Detector_data\detector_dict_ibm_kyiv_simulator_3_70286_3_0.0.json"
         }
     
     # read settings into variables
