@@ -86,7 +86,7 @@ class repetition_code_data:
         contain ancilla measurements and the strings are of length 3-1=2.
         '''
         if raw_data == None:
-            with open(self.run + '_data/Raw_data/result_matrix_'+self.backend_name+'_'+str(self.code_distance)+'_'
+            with open("data/"+ self.run + '/Raw_data/result_matrix_'+self.backend_name+'_'+str(self.code_distance)+'_'
                     +str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'r') as infile:
                 raw_data = json.load(infile)
         ancilla = self.code_distance-1
@@ -141,15 +141,15 @@ class repetition_code_data:
 
         #Save the data in json files:
         json_object = json.dumps(data[0])
-        with open(self.run + '_data/Format_data/result_dict_'+self.backend_name+'_'+str(self.code_distance)
+        with open("data/"+ self.run + '/Format_data/result_dict_'+self.backend_name+'_'+str(self.code_distance)
                 +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'w') as outfile:
             outfile.write(json_object)
         json_object = json.dumps(data[1])
-        with open(self.run + '_data/Detector_data/detector_dict_'+self.backend_name+'_'
+        with open("data/"+ self.run + '/Detector_data/detector_dict_'+self.backend_name+'_'
                 +str(self.code_distance)+'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'w') as outfile:
             outfile.write(json_object)
         json_object = json.dumps(data[2])
-        with open(self.run + '_data/Outcome_data/outcome_dict_'+self.backend_name+'_'
+        with open("data/"+ self.run + '/Outcome_data/outcome_dict_'+self.backend_name+'_'
                 +str(self.code_distance)+'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'w') as outfile:
             outfile.write(json_object)
         return data
@@ -164,7 +164,7 @@ class repetition_code_data:
         (This code is very slow and has been vastly improved in the surface code formatter. The
         surface code code should be inserted here).
         '''
-        with open(self.run + '_data/Detector_data/detector_dict_'+self.backend_name+'_'+str(self.code_distance)
+        with open("data/"+ self.run + '/Detector_data/detector_dict_'+self.backend_name+'_'+str(self.code_distance)
                 +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'r') as infile:
             data = json.load(infile)
             data = np.array(list(data.values()))
@@ -243,7 +243,7 @@ class repetition_code_data:
 
         matrix = P(XX(converter(data)),X(converter(data)))
         json_object = json.dumps(matrix.tolist())
-        with open(self.run + '_data/Error_matrix/error_matrix_q_'+self.backend_name+'_'+str(self.code_distance)
+        with open("data/"+ self.run + '/Error_matrix/error_matrix_q_'+self.backend_name+'_'+str(self.code_distance)
                 +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'w') as outfile:
             outfile.write(json_object)
         return matrix
@@ -258,7 +258,7 @@ class repetition_code_data:
         (This code is very slow and has been vastly improved in the surface code formatter. The
         surface code code should be inserted here).
         '''
-        with open(self.run + '_data/Detector_data/detector_dict_'+self.backend_name+'_'+str(self.code_distance)
+        with open("data/"+ self.run + '/Detector_data/detector_dict_'+self.backend_name+'_'+str(self.code_distance)
                 +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'r') as infile:
             data = json.load(infile)
             data = np.array(list(data.values()))
@@ -339,7 +339,7 @@ class repetition_code_data:
 
         matrix = P(XX(converter(data)),X(converter(data)))
         json_object = json.dumps(matrix.tolist())
-        with open(self.run + '_data/Error_matrix/error_matrix_t_'+self.backend_name+'_'+str(self.code_distance)
+        with open("data/"+ self.run + '/Error_matrix/error_matrix_t_'+self.backend_name+'_'+str(self.code_distance)
                 +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'w') as outfile:
             outfile.write(json_object)
         return matrix

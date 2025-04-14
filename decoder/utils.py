@@ -27,11 +27,12 @@ def parse_yaml(yaml_config):
             "root": "../",
             "save_dir": "../training_outputs",
             "model_name": "graph_decoder",
-            "save_model_dir": "temp_dir",
-            "saved_model_path": "temp_dir"
+            "save_model_dir": "training_outputs",
+            "saved_model_path": "training_outputs"
         }
         config["model_settings"] = {
             # "hidden_channels_GCN": [32, 128, 256, 512, 512, 256, 256],
+            # "hidden_channels_GCN": [32, 128, 256, 512, 256],
             "hidden_channels_GCN": [32, 128, 256],
             "hidden_channels_MLP": [256, 128, 64],
             # "num_classes": 12
@@ -46,13 +47,13 @@ def parse_yaml(yaml_config):
         device = "cuda" if torch.cuda.is_available() else "cpu"
         config["training_settings"] = {
             "seed": None,
-            "batch_size": 1000,
+            "batch_size": 5000,
             "lr": 0.01,
             "device": device,
             "resume_training": False,
             "current_epoch": 0,
             "test_set_size": 1000,
-            "training_folder": "dist5_time3_data"
+            "training_folder": "data/d3_t3_torino"
         }
     
     # read settings into variables

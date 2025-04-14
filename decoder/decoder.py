@@ -84,9 +84,10 @@ class Decoder:
             self.load_trained_model()
 
     def create_name(self):
+        
         name = ("d" +
                 str(self.code_size) +
-                "_d_t_" +
+                "_t" +
                 str(self.d_t) +
                 '_' + datetime.now().strftime("%y%m%d_%H%M%S") +
                 '_' + self.script_name)
@@ -250,8 +251,8 @@ class Decoder:
         # Fetch syndrome and outcome data
         if training_data_location == None:
             training_data_location = self.training_settings["training_folder"]
-        detector_files = [f for f in listdir(training_data_location+"\Detector_data") if isfile(join(training_data_location+"\Detector_data", f))]
-        outcome_files = [f for f in listdir(training_data_location+"\Outcome_data") if isfile(join(training_data_location+"\Outcome_data", f))]
+        detector_files = [f for f in listdir(training_data_location+"/Detector_data") if isfile(join(training_data_location+"/Detector_data", f))]
+        outcome_files = [f for f in listdir(training_data_location+"/Outcome_data") if isfile(join(training_data_location+"/Outcome_data", f))]
         print(detector_files)
         print(outcome_files)
         settings = detector_files[0].split("_")
@@ -299,7 +300,7 @@ class Decoder:
             # self.initialise_simulations(self.train_error_rate)
 
             # the complete dataset containing batch_size data points:
-            sample_start = time.perf_counter()
+            # sample_start = time.perf_counter()
             
             trivial = all_trivial[test_set_size:]
             n_trivial = sum(trivial)
@@ -314,22 +315,28 @@ class Decoder:
             # normalize the node features:
             x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
             x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
-            sample_end = time.perf_counter()
-            time_sample += (sample_end - sample_start)
+            # sample_end = time.perf_counter()
+            # time_sample += (sample_end - sample_start)
 
 
             train_loss = 0
             epoch_n_graphs = 0
             epoch_n_correct = 0
             for j in range(n_batches):
+                print(f"Running batch: {j}")
+
+                # Slice data into batch
+                x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes[j*batch_size:(j+1)*batch_size])
+                x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
+                x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
+                flips_batch = flips[j*batch_size:(j+1)*batch_size]
                 
-                if j % (n_batches//20+1) == 0:
-                    print(f"Running batch: {j}")
+                # if j % (n_batches//20+1) == 0:
                 # forward/backward pass
                 fit_start = time.perf_counter()
                 self.optimizer.zero_grad()
                 out = self.model(x, edge_index, batch_labels, edge_attr)
-                loss = loss_fun(out, flips)
+                loss = loss_fun(out, flips_batch)
                 loss.backward()
                 self.optimizer.step()
                 fit_end = time.perf_counter()
@@ -337,11 +344,13 @@ class Decoder:
 
                 # update loss and accuracies
                 prediction = (sigmoid(out.detach()) > 0.5).long()
-                target = flips.long()
+                target = flips_batch.long()
                 epoch_n_correct += int(((prediction == target).sum(dim=1) == 
                             self.model_settings["num_classes"]).sum().item())
                 train_loss += loss.item() * batch_size
                 epoch_n_graphs += batch_size
+
+                
                 
 
             # train
@@ -396,8 +405,8 @@ class Decoder:
             self.saved_model_path = model_path
             self.load_trained_model()
 
-        detector_files = [f for f in listdir(testing_data_location+"\Detector_data") if isfile(join(testing_data_location+"\Detector_data", f))]
-        outcome_files = [f for f in listdir(testing_data_location+"\Outcome_data") if isfile(join(testing_data_location+"\Outcome_data", f))]
+        detector_files = [f for f in listdir(testing_data_location+"/Detector_data") if isfile(join(testing_data_location+"/Detector_data", f))]
+        outcome_files = [f for f in listdir(testing_data_location+"/Outcome_data") if isfile(join(testing_data_location+"/Outcome_data", f))]
         print(detector_files)
         print(outcome_files)
         settings = detector_files[0].split("_")
@@ -420,6 +429,10 @@ class Decoder:
             syndromes, observable_flips, trivial = fetch_data(outcome_file, syndromes_file, self.device)
             n_trivial = sum(trivial)
 
+            # Remove trivial
+            syndromes = syndromes[np.logical_not(trivial)]
+            observable_flips = observable_flips[np.logical_not(trivial)]
+
             val_x, val_edge_index, val_batch_labels, val_edge_attr = self.get_batch_of_graphs(syndromes)
 
             # normalize the node features:
@@ -428,12 +441,12 @@ class Decoder:
             test_loss_batch, test_accuracy_batch = self.evaluate_test_set(val_x, val_edge_index,
                                                                 val_batch_labels, val_edge_attr,
                                                                 observable_flips,
-                                                                n_trivial_syndromes,
+                                                                n_trivial,
                                                                 loss_fun,
                                                                 batch_size)
-            print(f'Accuracy: {test_accuracy_batch:.6f} Trivials: {n_trivial_syndromes} No. Samples: {batch_size}')
+            print(f'Accuracy: {test_accuracy_batch:.6f} Trivials: {n_trivial} No. Samples: {batch_size}')
             test_accuracy += test_accuracy_batch
-            n_trivial_syndromes += n_trivial_syndromes
+            n_trivial_syndromes += n_trivial
 
         test_accuracy = test_accuracy / n_test_batches
         print(f'Test Acc: {test_accuracy}, tested on {n_test_batches * batch_size} '
@@ -445,17 +458,20 @@ class Decoder:
             runtime, 60)[0], 60), *divmod(runtime, 60)[::-1]))
 
 
-    def run(self):
-        if self.training_settings["resume_training"]:
-            print(f'Loading model {self.saved_model_path}')
-        print(f'Running on code size {self.code_size} with {self.d_t} repetitions.')
-        if self.training_settings['run_training']:
-            if self.training_settings['run_test']:
-                self.train()
-                self.test()
-                # only save final test accuracy if trained before
-                self.save_model_w_training_settings()
-            else:
-                self.train()
-        else:
-            self.test()
+    def run(self, training_data_location=None):
+        self.train(training_data_location)
+        self.test(training_data_location+"_testing")
+
+        # if self.training_settings["resume_training"]:
+        #     print(f'Loading model {self.saved_model_path}')
+        # print(f'Running on code size {self.code_size} with {self.d_t} repetitions.')
+        # if self.training_settings['run_training']:
+        #     if self.training_settings['run_test']:
+        #         self.train()
+        #         self.test()
+        #         # only save final test accuracy if trained before
+        #         self.save_model_w_training_settings()
+        #     else:
+        #         self.train()
+        # else:
+        #     self.test()

@@ -25,23 +25,23 @@ service = QiskitRuntimeService()
 logic_qubits = 1
 qubits_per_logical = 3
 number_of_measurements = 3
-shots = 100000
+shots = 1000000
 # backend_name = "ibm_kyiv"
-backend_name = "ibm_marrakesh"
+backend_name = "ibm_torino"
 version = "0.0"
 
 run_name = f"d{qubits_per_logical}_t{number_of_measurements}_{backend_name.split("_")[-1]}"
 
+
+remove_trivial = True # Removes all trivial syndromes before saving if set to True. Should be False for testing data.
+
 # Simulate data or run on quantum computer
 simulate = False # Warning: be careful to use the correct setting before running on quantum as not to waste service time
-
 
 backend = service.backend(backend_name)
 if simulate:
     backend = AerSimulator.from_backend(backend)
     backend_name += "_simulator"
-
-
 
 
 
@@ -130,21 +130,24 @@ for i in range(logic_qubits):
 
 
 # Remove trivial syndromes before saving data
-data = np.array(data)
-trivial_index = []
-for i in range(shots):
-    if int("".join(data[0,:,i])) == 0:
-        trivial_index.append(i)
-data = np.delete(data, trivial_index, axis=2)
-non_trivial_shots = data.shape[2]
-data = data.tolist()
+if remove_trivial:
+    data = np.array(data)
+    trivial_index = []
+    for i in range(shots):
+        if int("".join(data[0,:,i])) == 0:
+            trivial_index.append(i)
+    data = np.delete(data, trivial_index, axis=2)
+    saved_shots = data.shape[2]
+    data = data.tolist()
+else:
+    saved_shots = shots
 
 
 
 
 # Create directories for data
 
-paths = ["data/"+run_name, "data/"+run_name+"_data/Detector_data", "data/"+run_name+"_data/Error_matrix", "data/"+run_name+"_data/Format_data", "data/"+run_name+"_data/Outcome_data", "data/"+run_name+"_data/Raw_data"]
+paths = ["data/"+run_name, "data/"+run_name+"/Detector_data", "data/"+run_name+"/Error_matrix", "data/"+run_name+"/Format_data", "data/"+run_name+"/Outcome_data", "data/"+run_name+"/Raw_data"]
 
 for p in paths:
     directory_path = Path(p)
@@ -162,11 +165,11 @@ for p in paths:
 
 
 # Use repetition_code_data class to structure and save data
-settings = [run_name, backend_name, qubits_per_logical, non_trivial_shots, number_of_measurements, version]
+settings = [run_name, backend_name, qubits_per_logical, saved_shots, number_of_measurements, version]
 data_handler = rcd.repetition_code_data(*settings)
 
 
-with open(data_handler.run + '_data/Raw_data/result_matrix_'+data_handler.backend_name+'_'+str(data_handler.code_distance)+'_'
+with open("data/"+data_handler.run + '/Raw_data/result_matrix_'+data_handler.backend_name+'_'+str(data_handler.code_distance)+'_'
     +str(data_handler.shots)+'_'+str(data_handler.time_steps)+'_'+data_handler.version+'.json', 'w') as outfile:
     outfile.write(json.dumps(data[0]))
 
