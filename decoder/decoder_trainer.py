@@ -1,7 +1,7 @@
 # %%
 import decoder as decoder
 
-file = "d3_t3_torino"
+file = "d7_t3_torino"
 
 d = decoder.Decoder(script_name=file)
 

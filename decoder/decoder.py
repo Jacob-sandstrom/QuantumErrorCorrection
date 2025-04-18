@@ -228,7 +228,8 @@ class Decoder:
                                   self.model_settings["num_classes"]).sum().item())
         val_loss = loss_fun(out, flips)
         val_accuracy = (correct_preds + n_trivial_syndromes) / n_samples
-        return val_loss, val_accuracy
+        val_accuracy_non_trivial = correct_preds / (n_samples - n_trivial_syndromes)
+        return val_loss, val_accuracy, val_accuracy_non_trivial
 
     def train(self, training_data_location=None):
         time_start = time.perf_counter()
@@ -360,7 +361,7 @@ class Decoder:
 
             # test
             print(test_x[:5, :])
-            test_loss, test_accuracy = self.evaluate_test_set(test_x, test_edge_index,
+            test_loss, test_accuracy, _ = self.evaluate_test_set(test_x, test_edge_index,
                                                             test_batch_labels, test_edge_attr,
                                                             test_observable_flips,
                                                             test_n_trivial,
@@ -398,6 +399,7 @@ class Decoder:
         n_test_batches = 1
 
         test_accuracy = 0
+        test_accuracy_non_trivial = 0
         n_trivial_syndromes = 0
         if testing_data_location == None:
             testing_data_location = self.training_settings["testing_folder"]
@@ -438,7 +440,7 @@ class Decoder:
             # normalize the node features:
             val_x[:, 1] = (val_x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
             val_x[:, 2:] = (val_x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
-            test_loss_batch, test_accuracy_batch = self.evaluate_test_set(val_x, val_edge_index,
+            test_loss_batch, test_accuracy_batch, test_accuracy_non_trivial_batch = self.evaluate_test_set(val_x, val_edge_index,
                                                                 val_batch_labels, val_edge_attr,
                                                                 observable_flips,
                                                                 n_trivial,
@@ -446,11 +448,15 @@ class Decoder:
                                                                 batch_size)
             print(f'Accuracy: {test_accuracy_batch:.6f} Trivials: {n_trivial} No. Samples: {batch_size}')
             test_accuracy += test_accuracy_batch
+            test_accuracy_non_trivial += test_accuracy_non_trivial_batch
             n_trivial_syndromes += n_trivial
 
         test_accuracy = test_accuracy / n_test_batches
+        test_accuracy_non_trivial = test_accuracy_non_trivial / n_test_batches
         print(f'Test Acc: {test_accuracy}, tested on {n_test_batches * batch_size} '
               f'samples, of which {n_trivial_syndromes} trivial samples.')
+        print(f'Test Acc: {test_accuracy_non_trivial}, tested on {n_test_batches * batch_size - n_trivial_syndromes} '
+              f'non trivial samples.')
         self.training_history["test_accuracy"].append(test_accuracy)
 
         runtime = time.perf_counter()-time_start
