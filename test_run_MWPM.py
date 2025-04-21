@@ -1,5 +1,6 @@
 ### Code for benchmarking MWPM performance.
 import numpy as np
+import math
 
 import repetition_code_data as rcd
 import repetition_code_MWPM as rcdmwpm
@@ -17,13 +18,15 @@ def benchmark_mwpm(folder_name, backend_name, num_qubits, logic_qubits, qubits_p
 
 # Testing data on Torino
 
-for i in range(3,9,2):
+for i in [3,5,7]:
+    #folder_name = f"d{i}_t3_torino_notrivial"
     folder_name = f"d{i}_t3_torino_testing"
     backend_name = "ibm_torino"
     num_qubits = i
     logic_qubits = 1
     qubits_per_logical = i
     n_measurements = 3
+    #n_shots = 482716
     n_shots = 500000
 
     print(f"Dist {i} Time 3:")
