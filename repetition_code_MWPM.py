@@ -50,7 +50,7 @@ class repetition_code_MWPM:
             '''
             Opens the detector data and creates a syndrome matrix.
             '''
-            with open(self.run+'_data/Detector_data/detector_dict_'+self.backend_name+'_'+str(self.code_distance)
+            with open(self.run+'/Detector_data/detector_dict_'+self.backend_name+'_'+str(self.code_distance)
                     +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json' , 'r') as infile:
                 data = json.load(infile)
             s_m = np.array(list(data.values()))
@@ -64,7 +64,7 @@ class repetition_code_MWPM:
             '''
             Opens the outcome (final measurement) of the qubits.
             '''
-            with open(self.run+'_data/Outcome_data/outcome_dict_'+self.backend_name+'_'+str(self.code_distance)
+            with open(self.run+'/Outcome_data/outcome_dict_'+self.backend_name+'_'+str(self.code_distance)
                     +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'r') as infile:
                 data = json.load(infile)
             return np.array(list(data.values()))
@@ -72,7 +72,7 @@ class repetition_code_MWPM:
     #Initialize matching using a custom weight matrix or constant weights:
         matching = pymatching.Matching()
         if weight == 'p_ij':
-            with open(self.run+'_data/Error_matrix/error_matrix_t_'+self.backend_name+'_'+str(self.code_distance)
+            with open(self.run+'/Error_matrix/error_matrix_t_'+self.backend_name+'_'+str(self.code_distance)
                             +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json' , 'r') as infile:
                 error_matrix_t = np.array(json.load(infile))
                 error_matrix_t[error_matrix_t == 0] = 0.0000001

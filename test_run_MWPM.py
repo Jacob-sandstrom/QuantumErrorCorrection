@@ -15,32 +15,18 @@ def benchmark_mwpm(folder_name, backend_name, num_qubits, logic_qubits, qubits_p
     # Run the MWPM-algorithm and print the error-rate
     return(mwpm.MWPM(weight="1"))
 
-###### - DIST 3 TIME 3 -  ########
-folder_name = "dist3_time3"
-backend_name = "ibm_kyiv"
-num_qubits = 3
-logic_qubits = 1
-qubits_per_logical = 3
-n_measurements = 3
-n_shots = 3995
+# Testing data on Torino
 
-print("Dist 3 Time 3:")
+for i in range(3,9,2):
+    folder_name = f"d{i}_t3_torino_testing"
+    backend_name = "ibm_torino"
+    num_qubits = i
+    logic_qubits = 1
+    qubits_per_logical = i
+    n_measurements = 3
+    n_shots = 500000
 
-for n_shots in [3995, 405748]:
-    settings = [folder_name, backend_name, num_qubits, logic_qubits, qubits_per_logical, n_measurements, n_shots]
-    print(n_shots," shots :",1-benchmark_mwpm(*settings))
+    print(f"Dist {i} Time 3:")
 
-###### - DIST 5 TIME 3 - ########
-folder_name = "dist5_time3"
-backend_name = "ibm_kyiv"
-num_qubits = 5
-logic_qubits = 1
-qubits_per_logical = 5
-n_measurements = 3
-n_shots = 3995
-
-print("Dist 3 Time 3:")
-
-for n_shots in [9256, 99606, 99659]:
     settings = [folder_name, backend_name, num_qubits, logic_qubits, qubits_per_logical, n_measurements, n_shots]
     print(n_shots," shots :",1-benchmark_mwpm(*settings))
