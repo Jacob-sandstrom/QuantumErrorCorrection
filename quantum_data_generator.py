@@ -23,7 +23,7 @@ service = QiskitRuntimeService()
 
 # run_name = "dist3_time3"
 logic_qubits = 1
-qubits_per_logical = 3
+qubits_per_logical = 9
 number_of_measurements = 3
 shots = 1000000
 # backend_name = "ibm_kyiv"
