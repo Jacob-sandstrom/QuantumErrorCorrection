@@ -15,7 +15,7 @@ service = QiskitRuntimeService()
 
 
 logic_qubits = 1
-qubits_per_logical = 9
+qubits_per_logical = 11
 number_of_measurements = 3
 # backend_name = "ibm_kyiv"
 backend_name = "ibm_torino"

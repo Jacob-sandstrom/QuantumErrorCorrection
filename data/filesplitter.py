@@ -1,7 +1,7 @@
 import json
 import numpy as np
 
-file = "data/d7_t3_torino/Outcome_data/outcome_dict_ibm_torino_7_1781686_3_0.0.json"
+file = "data/d11_t3_torino/Detector_data/detector_dict_ibm_torino_11_803618_3_0.0.json"
 
 splitfraction = 2
 
