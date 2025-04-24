@@ -21,12 +21,12 @@ number_of_measurements = 3
 backend_name = "ibm_torino"
 version = "0.0"
 
-run_name = f"d{qubits_per_logical}_t{number_of_measurements}_{backend_name.split("_")[-1]}adfdsfasdfasdf"
+run_name = f"d{qubits_per_logical}_t{number_of_measurements}_{backend_name.split("_")[-1]}"
 
 
 remove_trivial = True # Removes all trivial syndromes before saving if set to True. Should be False for testing data.
 
-workload_id = "d02e3vzkzhn0008dze80"
+workload_id = ""
 
 retrieved_job = service.job(workload_id)
 result = retrieved_job.result()[0]
