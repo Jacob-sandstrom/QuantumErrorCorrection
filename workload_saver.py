@@ -85,9 +85,9 @@ settings = [run_name, backend_name, qubits_per_logical, saved_shots, number_of_m
 data_handler = rcd.repetition_code_data(*settings)
 
 
-with open("data/"+data_handler.run + '/Raw_data/result_matrix_'+data_handler.backend_name+'_'+str(data_handler.code_distance)+'_'
-    +str(data_handler.shots)+'_'+str(data_handler.time_steps)+'_'+data_handler.version+'.json', 'w') as outfile:
-    outfile.write(json.dumps(data[0]))
+# with open("data/"+data_handler.run + '/Raw_data/result_matrix_'+data_handler.backend_name+'_'+str(data_handler.code_distance)+'_'
+#     +str(data_handler.shots)+'_'+str(data_handler.time_steps)+'_'+data_handler.version+'.json', 'w') as outfile:
+#     outfile.write(json.dumps(data[0]))
 
 
 data_handler.format(raw_data=data[0])
