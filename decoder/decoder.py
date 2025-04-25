@@ -396,7 +396,6 @@ class Decoder:
         # batch_size = self.training_settings["acc_test_batch_size"]
         # batch_size = 1000
         # n_test_batches = self.training_settings["acc_test_size"] // batch_size
-        n_test_batches = 1
 
         test_accuracy = 0
         test_accuracy_non_trivial = 0
@@ -409,6 +408,7 @@ class Decoder:
 
         detector_files = [f for f in listdir(testing_data_location+"/Detector_data") if isfile(join(testing_data_location+"/Detector_data", f))]
         outcome_files = [f for f in listdir(testing_data_location+"/Outcome_data") if isfile(join(testing_data_location+"/Outcome_data", f))]
+        n_test_batches = len(detector_files)
         print(detector_files)
         print(outcome_files)
         settings = detector_files[0].split("_")

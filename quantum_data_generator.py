@@ -23,9 +23,9 @@ service = QiskitRuntimeService()
 
 # run_name = "dist3_time3"
 logic_qubits = 1
-qubits_per_logical = 13
+qubits_per_logical = 15
 number_of_measurements = 3
-shots = 250000
+shots = 300000
 # backend_name = "ibm_kyiv"
 backend_name = "ibm_torino"
 version = "0.0"
@@ -34,7 +34,7 @@ run_name = f"d{qubits_per_logical}_t{number_of_measurements}_{backend_name.split
 
 
 wait_for_result = False
-workloads_to_queue = 2
+workloads_to_queue = 20
 
 remove_trivial = True # Removes all trivial syndromes before saving if set to True. Should be False for testing data.
 
