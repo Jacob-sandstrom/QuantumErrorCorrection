@@ -32,7 +32,7 @@ class repetition_code_MWPM:
         self.time_steps = time_steps
         self.version = version
 
-    def MWPM(self, weight = 'p_ij', init_state='0'):
+    def MWPM(self, weight = 'p_ij', init_state='0', ignoreTrivial = False):
         '''
         MWPM decoder for the repetition code.
 
@@ -45,6 +45,8 @@ class repetition_code_MWPM:
         init_state: str
             '1' or '0'. In which state the qubits were initialized. Assumes all qubits were
             initlialized in either 1 or 0
+        ignoreTrivial: bool
+            Whether to ignore trivial cases in the input data.
         '''
         def syndrome():
             '''
@@ -55,6 +57,7 @@ class repetition_code_MWPM:
                 data = json.load(infile)
             s_m = np.array(list(data.values()))
             s_n = []
+
             for shot in range(self.shots):
                 s_d = s_m[shot].tolist()
                 s_n.append(sum(s_d, []))
@@ -97,15 +100,36 @@ class repetition_code_MWPM:
                 matching.add_edge(i+j+1,i+j+1+self.code_distance-1, weight=weight_matrix[i+j+1][i+j+1+self.code_distance-1], merge_strategy='replace')
 
     #Choose initial state and decode:
+
+        #Get syndromes
+        syndromes = syndrome()
+
+        #Set number of shots (modified if ignoring trivial cases)
+        num_shots = self.shots
+
+        #Mask for all non-trivial cases
+        non_trivial_mask = [False if sum(arr) == 0 else True for arr in syndromes]
+
+        #Single out non-trivial cases
+        if (ignoreTrivial):
+            syndromes = [arr for arr, keep in zip(syndromes, non_trivial_mask) if keep]
+            num_shots = len(syndromes)
+
+        print("Number of datapoints:",num_shots)
+
         if init_state == '1':
-            prediction = (matching.decode_batch(syndrome())+np.ones(self.code_distance, dtype=int))%2
+            prediction = (matching.decode_batch(syndromes)+np.ones(self.code_distance, dtype=int))%2
         if init_state == '0':
-            prediction = matching.decode_batch(syndrome())
+            prediction = matching.decode_batch(syndromes)
 
     #Calculate the logical error rate:
         success = 0
         outcome_m = outcome()
-        for i in range(self.shots):
+
+        if (ignoreTrivial):
+            outcome_m = [arr for arr, keep in zip(outcome_m, non_trivial_mask) if keep]
+
+        for i in range(num_shots):
             if prediction[i][0] == outcome_m[i][0]:
                 success = success + 1
-        return(1-success/self.shots)
+        return(1-success/num_shots)
