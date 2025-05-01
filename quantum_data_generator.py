@@ -9,7 +9,7 @@ from pathlib import Path
 from time import sleep
 
 # Qiskit Runtime
-from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
+from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler, SamplerOptions
 
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 
@@ -23,20 +23,24 @@ service = QiskitRuntimeService()
 
 # run_name = "dist3_time3"
 logic_qubits = 1
-qubits_per_logical = 15
+qubits_per_logical = 19
 number_of_measurements = 3
-shots = 300000
+shots = 250000
 # backend_name = "ibm_kyiv"
 backend_name = "ibm_torino"
 version = "0.0"
+testing_data = False
 
 run_name = f"d{qubits_per_logical}_t{number_of_measurements}_{backend_name.split("_")[-1]}"
+if testing_data: run_name += "_testing"
 
+
+remove_trivial = not testing_data # Removes all trivial syndromes before saving if set to True. Should be False for testing data.
+# remove_trivial = True 
 
 wait_for_result = False
-workloads_to_queue = 20
+workloads_to_queue = 24
 
-remove_trivial = True # Removes all trivial syndromes before saving if set to True. Should be False for testing data.
 
 # Simulate data or run on quantum computer
 simulate = False # Warning: be careful to use the correct setting before running on quantum as not to waste service time
@@ -110,8 +114,10 @@ isa_circuit = pm.run(circuit)
 # isa_circuit.draw('mpl', style='iqp', idle_wires=False)
 
 
+options = SamplerOptions(environment={"job_tags": [run_name]})
+sampler = Sampler(backend, options)
 # Sample data from backend
-sampler = Sampler(backend)
+# sampler = Sampler(backend)
 
 for _ in range(workloads_to_queue):
     job = sampler.run([isa_circuit], shots=shots)
