@@ -16,12 +16,12 @@ service = QiskitRuntimeService()
 
 
 logic_qubits = 1
-qubits_per_logical = 17
+qubits_per_logical = 23
 number_of_measurements = 3
 # backend_name = "ibm_kyiv"
 backend_name = "ibm_torino"
 version = ""
-testing_data = False
+testing_data = True
 
 run_name = f"d{qubits_per_logical}_t{number_of_measurements}_{backend_name.split("_")[-1]}"
 if testing_data: run_name += "_testing"
@@ -31,15 +31,17 @@ remove_trivial = not testing_data # Removes all trivial syndromes before saving 
 
 
 
-jobs = service.jobs(limit=19, skip=3) # last n jobs
-# jobs = service.jobs(limit=20, job_tags=[""]) # last n jobs
+# jobs = service.jobs(limit=19, skip=3) # last n jobs
+jobs = service.jobs(limit=None, job_tags=[run_name]) 
 # successful_jobs = [j for j in service.jobs(limit=20) if j.status() == "DONE"]
 
-print(jobs)
 
 
 # workload_id = ""
 # retrieved_job = service.job(workload_id)
+# jobs = [service.job("")]
+print(len(jobs))
+print(jobs)
 
 for retrieved_job in jobs:
     version = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
