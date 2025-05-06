@@ -312,10 +312,10 @@ class Decoder:
             flips = all_flips[test_set_size:]
             flips = flips[np.logical_not(trivial)]
 
-            x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes)
+            # x, edge_index, batch_labels, edge_attr = self.get_batch_of_graphs(syndromes)
             # normalize the node features:
-            x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
-            x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
+            # x[:, 1] = (x[:, 1] - (self.d_t / 2)) / (self.d_t / 2)
+            # x[:, 2:] = (x[:, 2:] - (self.code_size / 2)) / (self.code_size / 2)
             # sample_end = time.perf_counter()
             # time_sample += (sample_end - sample_start)
 
