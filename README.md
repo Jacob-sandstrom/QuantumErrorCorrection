@@ -1,3 +1,1 @@
-# QuantumErrorCorrection
-# hej hej
-# nils branch test
+# Kandidatarbete för Kvantfelskorrektion av bitfel i repetitionskoder med maskininlärning
