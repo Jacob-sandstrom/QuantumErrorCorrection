@@ -145,8 +145,8 @@ class repetition_code_data:
         # with open("data/"+ self.run + '/Format_data/result_dict_'+self.backend_name+'_'+str(self.code_distance)
         #         +'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'w') as outfile:
         #     outfile.write(json_object)
-        # json_object = json.dumps(data[1])
 
+        json_object = json.dumps(data[1])
         with open("data/"+ self.run + '/Detector_data/detector_dict_'+self.backend_name+'_'
                 +str(self.code_distance)+'_'+str(self.shots)+'_'+str(self.time_steps)+'_'+self.version+'.json', 'w') as outfile:
             outfile.write(json_object)

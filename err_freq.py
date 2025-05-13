@@ -51,3 +51,5 @@ plt.ylim(0, 1)
 plt.xticks(x_values, [str(x) for x in x_values])
 plt.legend()
 plt.show()
+
+print(correct_frequencies)
